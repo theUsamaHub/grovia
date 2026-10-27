@@ -9,9 +9,15 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {},
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/grovia-adaptive.png",
+        "backgroundColor": "#2F6B4F"
+      }
+    },
     "web": {
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/images/grovia-icon.png"
     },
     "plugins": [
       "expo-router",
@@ -41,6 +47,7 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "icon": "./assets/images/grovia-icon.png"
   }
 }

@@ -102,3 +102,9 @@ GitHub Actions checks pull requests and working branch pushes. Branch protection
 ## Validation limits
 
 Static checks and JS exports do not prove native compilation, startup, offline behavior, notification delivery, background reliability or installed size. Those require development/release builds and real-device QA in later phases.
+
+## Phase 2: brand and appearance
+
+The app now has an original tree icon, a themed appearance screen, System/Light/Dark switching and locally persisted preferences. Mobile uses SQLite with versioned transactional migrations; the browser preview uses localStorage. See [brand and storage details](docs/BRAND_THEME_STORAGE.md). Run `npm run test` for persistence, migration safety and theme-contrast tests. A native rebuild is required for the new launcher icon.
+
+For the exported browser build, run npx expo export --platform web, then npm run preview (http://127.0.0.1:8082).
