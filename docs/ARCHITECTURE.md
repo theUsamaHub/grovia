@@ -19,3 +19,7 @@ Official references:
 - https://docs.expo.dev/more/create-expo/
 - https://docs.expo.dev/versions/v58.0.0/sdk/font/
 - https://docs.expo.dev/versions/v58.0.0/sdk/audio/
+
+## Phase 2 update
+
+Appearance is now persisted in the native SQLite settings table. See BRAND_THEME_STORAGE.md for migrations, error behavior and the browser preview adapter. Theme palettes and launcher assets are now implemented; earlier phase-1 notes about pending schemas/icons describe the previous milestone.

@@ -1,40 +1,220 @@
-import { StyleSheet, Text, useColorScheme } from 'react-native';
+import {
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, typography } from '@/theme';
-export default function HomeScreen() {
-  const palette = colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+import { useState } from 'react';
+import { AppText, Card, uiStyles } from '@/components/ui/primitives';
+import { useAppTheme } from '@/theme/provider';
+import type { ThemePreference } from '@/theme/preference';
+import { radii, spacing } from '@/theme';
+const choices: {
+  value: ThemePreference;
+  label: string;
+  description: string;
+  icon: 'sun' | 'moon' | 'smartphone';
+}[] = [
+  {
+    value: 'system',
+    label: 'System',
+    description: 'Follow your device',
+    icon: 'smartphone',
+  },
+  {
+    value: 'light',
+    label: 'Light',
+    description: 'A little daylight',
+    icon: 'sun',
+  },
+  {
+    value: 'dark',
+    label: 'Dark',
+    description: 'An evening calm',
+    icon: 'moon',
+  },
+];
+function AppearanceOption({ option }: { option: (typeof choices)[number] }) {
+  const { palette, preference, setPreference, saving } = useAppTheme();
+  const [focused, setFocused] = useState(false);
+  const selected = preference === option.value;
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: palette.background }]}
+    <Pressable
+      accessibilityRole="radio"
+      aria-checked={selected}
+      aria-disabled={saving}
+      accessibilityState={{ checked: selected, disabled: saving }}
+      accessibilityLabel={option.label + ', ' + option.description}
+      disabled={saving}
+      onPress={() => void setPreference(option.value)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={({ pressed }) => [
+        styles.option,
+        {
+          backgroundColor: selected ? palette.surfaceMuted : palette.surface,
+          borderColor: selected || focused ? palette.focus : palette.border,
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
     >
-      <Text
-        accessibilityRole="header"
-        style={[styles.title, { color: palette.primary }]}
-      >
-        Grovia
-      </Text>
-      <Text style={[styles.tagline, { color: palette.text }]}>
-        Focus. Grow. Thrive.
-      </Text>
+      <Feather name={option.icon} size={22} color={palette.primary} />
+      <View style={{ flex: 1 }}>
+        <AppText>{option.label}</AppText>
+        <AppText muted style={{ fontSize: 13 }}>
+          {option.description}
+        </AppText>
+      </View>
+      <Feather
+        name={selected ? 'check-circle' : 'circle'}
+        size={22}
+        color={selected ? palette.primary : palette.textMuted}
+      />
+    </Pressable>
+  );
+}
+export default function HomeScreen() {
+  const { palette, mode, error, saving } = useAppTheme();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.content}>
+          <View
+            style={[
+              uiStyles.row,
+              { justifyContent: 'space-between', flexWrap: 'wrap' },
+            ]}
+          >
+            <View style={uiStyles.row}>
+              <Image
+                source={require('../../assets/images/grovia-icon.png')}
+                style={styles.logo}
+                accessibilityLabel="Grovia tree icon"
+              />
+              <AppText variant="heading">Grovia</AppText>
+            </View>
+            <View
+              style={[styles.badge, { backgroundColor: palette.surfaceMuted }]}
+            >
+              <Feather name="feather" color={palette.primary} size={14} />
+              <AppText variant="label">YOUR OWN PACE</AppText>
+            </View>
+          </View>
+          <View
+            style={[styles.hero, { backgroundColor: palette.surfaceMuted }]}
+          >
+            <Image
+              source={require('../../assets/images/grovia-adaptive.png')}
+              style={styles.tree}
+              accessibilityIgnoresInvertColors
+              accessible={false}
+            />
+            <AppText
+              variant="label"
+              style={{ color: palette.primary, letterSpacing: 2 }}
+            >
+              FOCUS. GROW. THRIVE.
+            </AppText>
+            <AppText variant="title" style={{ textAlign: 'center' }}>
+              Make room for{'\n'}a little growth.
+            </AppText>
+            <AppText muted style={{ textAlign: 'center', maxWidth: 340 }}>
+              A calmer space for your attention. Make it feel like yours.
+            </AppText>
+          </View>
+          <Card>
+            <View style={uiStyles.row}>
+              <View style={{ flex: 1 }}>
+                <AppText variant="heading">Your atmosphere</AppText>
+                <AppText muted>Find your comfortable light.</AppText>
+              </View>
+              <Feather
+                name={mode === 'dark' ? 'moon' : 'sun'}
+                size={24}
+                color={palette.primary}
+              />
+            </View>
+            <View
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Appearance"
+              style={{ gap: 10 }}
+            >
+              {choices.map((option) => (
+                <AppearanceOption key={option.value} option={option} />
+              ))}
+            </View>
+            <AppText
+              muted
+              style={{ fontSize: 13 }}
+              accessibilityLiveRegion="polite"
+            >
+              {saving
+                ? 'Saving your preference…'
+                : 'Your choice is remembered on this device.'}
+            </AppText>
+            {error && (
+              <AppText
+                accessibilityRole="alert"
+                style={{ color: palette.danger }}
+              >
+                {error}
+              </AppText>
+            )}
+          </Card>
+          <Card
+            style={{ backgroundColor: palette.surfaceMuted, borderWidth: 0 }}
+          >
+            <View style={uiStyles.row}>
+              <Feather name="shield" color={palette.primary} size={22} />
+              <AppText variant="heading" style={{ fontSize: 18 }}>
+                A space that stays yours
+              </AppText>
+            </View>
+            <AppText muted>
+              {Platform.OS === 'web'
+                ? 'This browser preview saves appearance in this browser. The mobile app keeps it in an on-device database.'
+                : 'Your preferences stay on your device. No account needed, and no connection required.'}
+            </AppText>
+          </Card>
+          <AppText muted style={{ textAlign: 'center', fontSize: 12 }}>
+            Small steps. Steady roots.
+          </AppText>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  scroll: { flexGrow: 1, padding: spacing.lg },
+  content: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    gap: 24,
+    paddingBottom: 24,
+  },
+  logo: { width: 44, height: 44, borderRadius: 14 },
+  badge: {
+    flexDirection: 'row',
+    gap: 6,
     alignItems: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: radii.pill,
   },
-  title: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 32,
-    textAlign: 'center',
-  },
-  tagline: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.md,
-    marginTop: spacing.sm,
-    textAlign: 'center',
+  hero: { borderRadius: 32, alignItems: 'center', padding: 24, gap: 12 },
+  tree: { width: 180, height: 180 },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 16,
+    minHeight: 76,
+    borderRadius: 16,
+    borderWidth: 2,
   },
 });
