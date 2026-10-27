@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Grovia",
+    "slug": "grovia",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "grovia",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite",
+      "expo-notifications",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F8F6EF",
+          "dark": {
+            "backgroundColor": "#17251D"
+          }
+        }
+      ],
+      "expo-sharing",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

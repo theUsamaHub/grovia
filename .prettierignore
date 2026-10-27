@@ -1,0 +1,8 @@
+node_modules/
+.expo/
+dist/
+android/
+ios/
+package-lock.json
+docs/PROJECT_CONTEXT.md
+docs/licenses/
