@@ -39,7 +39,10 @@
           "backgroundColor": "#F8F6EF",
           "dark": {
             "backgroundColor": "#17251D"
-          }
+          },
+          "image": "./assets/images/grovia-adaptive.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
         }
       ],
       "expo-sharing",

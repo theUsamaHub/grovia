@@ -2,9 +2,12 @@ export interface SqlConnection {
   execAsync(sql: string): Promise<void>;
   getFirstAsync<T>(
     sql: string,
-    ...params: (string | number)[]
+    ...params: (string | number | null)[]
   ): Promise<T | null>;
-  runAsync(sql: string, ...params: (string | number)[]): Promise<unknown>;
+  runAsync(
+    sql: string,
+    ...params: (string | number | null)[]
+  ): Promise<unknown>;
 }
 export interface MigrationDatabase extends SqlConnection {
   withExclusiveTransactionAsync(
@@ -21,6 +24,14 @@ export const migrations = [
     updated_at TEXT NOT NULL
   );
 `,
+  },
+  {
+    version: 2,
+    sql: `CREATE TABLE focus_sessions (id TEXT PRIMARY KEY NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('focus','break')), mode TEXT NOT NULL, started_at INTEGER NOT NULL, ended_at INTEGER NOT NULL, actual_ms INTEGER NOT NULL CHECK(actual_ms >= 0), planned_ms INTEGER NOT NULL CHECK(planned_ms > 0), outcome TEXT NOT NULL CHECK(outcome IN ('completed','stopped'))); CREATE INDEX focus_sessions_ended_at ON focus_sessions(ended_at);`,
+  },
+  {
+    version: 3,
+    sql: 'ALTER TABLE focus_sessions ADD COLUMN task_id TEXT; ALTER TABLE focus_sessions ADD COLUMN task_title TEXT; CREATE INDEX focus_sessions_task ON focus_sessions(task_id);',
   },
 ];
 export async function migrateDatabase(db: MigrationDatabase) {

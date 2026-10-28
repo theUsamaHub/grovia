@@ -8,6 +8,7 @@ const types = {
   '.js': 'text/javascript',
   '.css': 'text/css',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
   '.ttf': 'font/ttf',
   '.ico': 'image/x-icon',
   '.json': 'application/json',
@@ -25,6 +26,7 @@ http
     }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory())
       file = path.join(file, 'index.html');
+    if (!fs.existsSync(file) && fs.existsSync(file + '.html')) file += '.html';
     if (!fs.existsSync(file)) {
       res.writeHead(404);
       res.end('Not found');

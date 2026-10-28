@@ -2,7 +2,7 @@
 
 Focus. Grow. Thrive.
 
-Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Phase 1 provides a runnable branded shell, development tooling and dependencies. Product screens and domain features are not implemented yet.
+Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Includes a themed app shell, persistent Focus timers, and a Tasks planner. See [Focus and Tasks](docs/FOCUS_TASKS.md) for implemented behavior and remaining device validation.
 
 ## Quick start
 
@@ -15,6 +15,8 @@ npm run web
 ```
 
 Web is a convenient shell preview. SQLite, notifications, audio and background behavior require native device testing.
+
+See [Android setup and troubleshooting](docs/ANDROID_SETUP.md) for the difference between Expo Go, a development build, and the local Android SDK. Run `npm run android:doctor` to check this PC before attempting a local build.
 
 For mobile, install a development build on your device, then run:
 
@@ -35,7 +37,7 @@ npx eas-cli@latest build --profile development --platform android
 npx eas-cli@latest build --profile development --platform ios
 ```
 
-Physical iOS builds need Apple signing credentials. Build profiles are prepared; no cloud build or store submission has been started. App icons and splash artwork are intentionally pending approved production assets.
+Physical iOS builds need Apple signing credentials. Build profiles are prepared; no cloud build or store submission has been started. Tree icons and splash artwork are configured.
 
 ## Commands
 

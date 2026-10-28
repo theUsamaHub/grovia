@@ -77,10 +77,13 @@ function AppearanceOption({ option }: { option: (typeof choices)[number] }) {
     </Pressable>
   );
 }
-export default function HomeScreen() {
+export default function YouScreen() {
   const { palette, mode, error, saving } = useAppTheme();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.background }}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      style={{ flex: 1, backgroundColor: palette.background }}
+    >
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.content}>
           <View
@@ -91,11 +94,11 @@ export default function HomeScreen() {
           >
             <View style={uiStyles.row}>
               <Image
-                source={require('../../assets/images/grovia-icon.png')}
+                source={require('../../../assets/images/grovia-icon.png')}
                 style={styles.logo}
                 accessibilityLabel="Grovia tree icon"
               />
-              <AppText variant="heading">Grovia</AppText>
+              <AppText variant="heading">You</AppText>
             </View>
             <View
               style={[styles.badge, { backgroundColor: palette.surfaceMuted }]}
@@ -108,7 +111,7 @@ export default function HomeScreen() {
             style={[styles.hero, { backgroundColor: palette.surfaceMuted }]}
           >
             <Image
-              source={require('../../assets/images/grovia-adaptive.png')}
+              source={require('../../../assets/images/grovia-adaptive.png')}
               style={styles.tree}
               accessibilityIgnoresInvertColors
               accessible={false}
@@ -120,7 +123,7 @@ export default function HomeScreen() {
               FOCUS. GROW. THRIVE.
             </AppText>
             <AppText variant="title" style={{ textAlign: 'center' }}>
-              Make room for{'\n'}a little growth.
+              Your space, your pace.
             </AppText>
             <AppText muted style={{ textAlign: 'center', maxWidth: 340 }}>
               A calmer space for your attention. Make it feel like yours.
@@ -207,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   hero: { borderRadius: 32, alignItems: 'center', padding: 24, gap: 12 },
-  tree: { width: 180, height: 180 },
+  tree: { width: 120, height: 120 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
