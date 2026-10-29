@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, View } from 'react-native';
 import {
   useAudioPlayer,
@@ -6,90 +6,213 @@ import {
   setAudioModeAsync,
 } from 'expo-audio';
 import { AppText, AppButton, Card } from '@/components/ui/primitives';
-const tracks = [
-  { name: 'Rain texture', source: require('../../../assets/audio/rain.wav') },
-  { name: 'Soft wind', source: require('../../../assets/audio/wind.wav') },
-  { name: 'Ocean texture', source: require('../../../assets/audio/ocean.wav') },
-];
+import { readValue, saveValue } from '../journal/repository';
+const tracks = ['Rain texture', 'Soft wind', 'Ocean texture'];
+type Mix = {
+  enabled: boolean[];
+  volumes: number[];
+  master: number;
+  muted: boolean;
+};
+const defaults: Mix = {
+  enabled: [true, false, false],
+  volumes: [0.4, 0.4, 0.4],
+  master: 0.5,
+  muted: false,
+};
 export function Ambience() {
-  const [track, setTrack] = useState(0);
-  const [volume, setVolume] = useState(0.4);
-  const [error, setError] = useState('');
-  const player = useAudioPlayer(tracks[track].source);
-  const status = useAudioPlayerStatus(player);
-  // Expo Audio exposes imperative native setters; this object is not React state.
-  /* eslint-disable react-hooks/immutability */
+  const rain = useAudioPlayer(require('../../../assets/audio/rain.wav'));
+  const wind = useAudioPlayer(require('../../../assets/audio/wind.wav'));
+  const ocean = useAudioPlayer(require('../../../assets/audio/ocean.wav'));
+  const players = useMemo(() => [rain, wind, ocean], [rain, wind, ocean]);
+  const rainStatus = useAudioPlayerStatus(rain),
+    windStatus = useAudioPlayerStatus(wind),
+    oceanStatus = useAudioPlayerStatus(ocean);
+  const playing =
+    rainStatus.playing || windStatus.playing || oceanStatus.playing;
+  const [mix, setMix] = useState(defaults);
+  const [ready, setReady] = useState(false);
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const generation = useRef(0);
   useEffect(() => {
-    player.loop = true;
-    player.volume = volume;
-  }, [player, volume]);
-  /* eslint-enable react-hooks/immutability */
+    let alive = true;
+    readValue<Mix>('ambience', defaults)
+      .then((value) => {
+        if (alive) {
+          setMix(value);
+          setReady(true);
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setReady(true);
+          setMessage('Saved mix could not load. Default levels are available.');
+        }
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  // Expo players expose imperative native setters rather than React state.
   useEffect(() => {
-    const listener = AppState.addEventListener('change', (state) => {
-      if (state !== 'active') player.pause();
+    players.forEach((player, i) => {
+      player.loop = true;
+      player.volume = mix.muted ? 0 : mix.master * mix.volumes[i];
+      if (!mix.enabled[i]) player.pause();
     });
-    return () => listener.remove();
-  }, [player]);
-  const toggle = async () => {
-    try {
-      if (status.playing) player.pause();
-      else {
-        await setAudioModeAsync({
-          playsInSilentMode: false,
-          shouldPlayInBackground: false,
-          interruptionMode: 'doNotMix',
-        });
-        player.play();
+  }, [players, mix]);
+  useEffect(() => {
+    const invalidate = () => {
+      generation.current++;
+    };
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        generation.current++;
+        players.forEach((p) => p.pause());
       }
-      setError('');
-    } catch {
-      setError(
-        'Audio could not start. Try again or check your device sound settings.',
-      );
+    });
+    return () => {
+      invalidate();
+      sub.remove();
+      players.forEach((p) => p.pause());
+    };
+  }, [players]);
+  async function toggle() {
+    if (lock.current) return;
+    if (playing) {
+      generation.current++;
+      players.forEach((p) => p.pause());
+      return;
     }
-  };
+    lock.current = true;
+    setBusy(true);
+    const token = ++generation.current;
+    try {
+      await setAudioModeAsync({
+        playsInSilentMode: false,
+        shouldPlayInBackground: false,
+        interruptionMode: 'doNotMix',
+      });
+      if (
+        token === generation.current &&
+        (AppState.currentState === 'active' || AppState.currentState === null)
+      )
+        players.forEach((player, i) => {
+          if (mix.enabled[i]) player.play();
+        });
+      setMessage('');
+    } catch {
+      setMessage(
+        'Audio could not start. Check your device sound settings and retry.',
+      );
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
+  }
+  async function save() {
+    setBusy(true);
+    try {
+      await saveValue('ambience', mix);
+      setMessage('Mix saved. Playback always starts manually.');
+    } catch {
+      setMessage('Could not save this mix. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  const change = (value: number, delta: number) =>
+    Math.max(0, Math.min(1, Math.round((value + delta) * 10) / 10));
   return (
     <Card>
-      <AppText variant="heading">A softer background</AppText>
+      <AppText variant="heading">Your soundscape</AppText>
       <AppText muted>
-        Original sound textures. Audio pauses when the app leaves the foreground
-        and respects silent mode.
+        Blend original rain, wind and ocean textures. Select layers, then play
+        the mix. Audio pauses in the background and respects silent mode.
       </AppText>
-      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-        {tracks.map((t, i) => (
+      {tracks.map((name, i) => (
+        <View key={name} style={{ gap: 8 }}>
           <AppButton
-            key={t.name}
-            label={(track === i ? '✓ ' : '') + t.name}
-            onPress={() => {
-              player.pause();
-              setTrack(i);
-            }}
+            label={(mix.enabled[i] ? '✓ ' : '') + name}
+            disabled={!ready || busy}
+            onPress={() =>
+              setMix((v) => ({
+                ...v,
+                enabled: v.enabled.map((b, j) => (j === i ? !b : b)),
+              }))
+            }
           />
-        ))}
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 8,
+              alignItems: 'center',
+            }}
+          >
+            <AppButton
+              label={'Quieter ' + name}
+              disabled={!ready || mix.volumes[i] === 0}
+              onPress={() =>
+                setMix((v) => ({
+                  ...v,
+                  volumes: v.volumes.map((n, j) =>
+                    j === i ? change(n, -0.1) : n,
+                  ),
+                }))
+              }
+            />
+            <AppText>{Math.round(mix.volumes[i] * 100)}%</AppText>
+            <AppButton
+              label={'Louder ' + name}
+              disabled={!ready || mix.volumes[i] === 1}
+              onPress={() =>
+                setMix((v) => ({
+                  ...v,
+                  volumes: v.volumes.map((n, j) =>
+                    j === i ? change(n, 0.1) : n,
+                  ),
+                }))
+              }
+            />
+          </View>
+        </View>
+      ))}
+      <AppText>Master volume · {Math.round(mix.master * 100)}%</AppText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <AppButton
+          label="Lower master"
+          disabled={!ready || mix.master === 0}
+          onPress={() =>
+            setMix((v) => ({ ...v, master: change(v.master, -0.1) }))
+          }
+        />
+        <AppButton
+          label="Raise master"
+          disabled={!ready || mix.master === 1}
+          onPress={() =>
+            setMix((v) => ({ ...v, master: change(v.master, 0.1) }))
+          }
+        />
+        <AppButton
+          label={mix.muted ? 'Unmute mix' : 'Mute mix'}
+          disabled={!ready}
+          onPress={() => setMix((v) => ({ ...v, muted: !v.muted }))}
+        />
       </View>
       <AppButton
-        label={status.playing ? 'Pause ambience' : 'Play ambience'}
+        label={playing ? 'Pause all sounds' : 'Play selected sounds'}
+        disabled={!ready || busy || !mix.enabled.some(Boolean)}
         onPress={() => void toggle()}
       />
-      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-        <AppButton
-          label="Quieter"
-          disabled={volume === 0}
-          onPress={() =>
-            setVolume((v) => Math.max(0, Math.round((v - 0.1) * 10) / 10))
-          }
-        />
-        <AppText>{Math.round(volume * 100)}%</AppText>
-        <AppButton
-          label="Louder"
-          disabled={volume === 1}
-          onPress={() =>
-            setVolume((v) => Math.min(1, Math.round((v + 0.1) * 10) / 10))
-          }
-        />
-      </View>
-      <AppButton label="Mute" onPress={() => setVolume(0)} />
-      {!!error && <AppText accessibilityRole="alert">{error}</AppText>}
+      <AppButton
+        label="Save mix"
+        disabled={!ready || busy}
+        onPress={() => void save()}
+      />
+      {!!message && <AppText accessibilityRole="alert">{message}</AppText>}
     </Card>
   );
 }

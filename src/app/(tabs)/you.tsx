@@ -1,3 +1,4 @@
+import { ReminderPanel } from '@/features/reminders/panel';
 import { RoutinePanel } from '@/features/focus/routine-panel';
 import { CategoryPanel } from '@/features/categories/panel';
 import { BackupPanel } from '@/features/backup/panel';
@@ -130,15 +131,17 @@ export default function YouScreen() {
             <AppText variant="title" style={{ textAlign: 'center' }}>
               Your space, your pace.
             </AppText>
-            <RoutinePanel />
-            <CategoryPanel />
-            <BackupPanel />
-            <Breathing />
-            <Ambience />
+
             <AppText muted style={{ textAlign: 'center', maxWidth: 340 }}>
               A calmer space for your attention. Make it feel like yours.
             </AppText>
           </View>
+          <RoutinePanel />
+          <ReminderPanel />
+          <CategoryPanel />
+          <BackupPanel />
+          <Breathing />
+          <Ambience />
           <Card>
             <View style={uiStyles.row}>
               <View style={{ flex: 1 }}>

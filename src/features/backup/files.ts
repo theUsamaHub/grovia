@@ -1,15 +1,25 @@
 import { File, Paths } from 'expo-file-system';
 import { getDocumentAsync } from 'expo-document-picker';
 import { isAvailableAsync, shareAsync } from 'expo-sharing';
-export async function shareBackup(text: string) {
+export async function shareBackup(
+  text: string,
+  kind: 'backup' | 'summary' = 'backup',
+) {
   if (!(await isAvailableAsync()))
     throw Error('Sharing is unavailable on this device.');
-  const file = new File(Paths.cache, 'grovia-backup-' + Date.now() + '.json');
+  const file = new File(
+    Paths.cache,
+    'grovia-' +
+      kind +
+      '-' +
+      Date.now() +
+      (kind === 'backup' ? '.json' : '.txt'),
+  );
   file.write(text);
   try {
     await shareAsync(file.uri, {
-      mimeType: 'application/json',
-      dialogTitle: 'Save your Grovia backup',
+      mimeType: kind === 'backup' ? 'application/json' : 'text/plain',
+      dialogTitle: 'Save your Grovia ' + kind,
     });
   } finally {
     if (file.exists) file.delete();

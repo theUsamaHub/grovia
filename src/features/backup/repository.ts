@@ -6,6 +6,11 @@ import { loadThemePreference } from '@/db/preferences';
 import { type Backup } from './schema';
 export async function exportBackup(): Promise<Backup> {
   return {
+    preferences: {
+      goals: await readValue('goals', undefined),
+      routine: await readValue('routine', undefined),
+      ambience: await readValue('ambience', undefined),
+    },
     version: 1,
     exportedAt: new Date().toISOString(),
     planner: await loadPlanner(),

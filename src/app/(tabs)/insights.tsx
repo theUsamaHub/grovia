@@ -1,3 +1,4 @@
+import { TrendsPanel } from '@/features/journal/trends-panel';
 import { useCallback, useState } from 'react';
 import {
   Modal,
@@ -180,6 +181,7 @@ export default function Insights() {
               </AppText>
             ))}
           </Card>
+          <TrendsPanel rows={rows} />
           <Card>
             <AppText variant="heading">Session journal</AppText>
             {report.sessions.length === 0 && (

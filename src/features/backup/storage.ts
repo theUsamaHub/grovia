@@ -9,6 +9,11 @@ export async function mergeBackup(db: MigrationDatabase, data: Backup) {
       active?: unknown;
     } | null;
     if (state?.active) throw Error('Finish the active timer before importing.');
+    for (const key of ['goals', 'routine', 'ambience'] as const) {
+      const value = data.preferences?.[key];
+      if (value !== undefined && (await readSetting(tx, key)) === null)
+        await writeSetting(tx, key, value);
+    }
     const planner =
       ((await readSetting(tx, 'planner')) as Planner | null) ?? initialPlanner;
     await writeSetting(tx, 'planner', {

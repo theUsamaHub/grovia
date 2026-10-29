@@ -8,6 +8,8 @@ const fs = require('node:fs'),
   ts = require('typescript');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'grovia-focus-'));
 for (const file of [
+  'features/goals/model',
+  'features/reminders/model',
   'features/backup/schema',
   'features/backup/storage',
   'features/world/model',
@@ -369,4 +371,148 @@ test('automatic routines take long breaks and never invent sessions after delaye
     completeSession(state, focus, 1501000, 'cold', false).state.active,
     null,
   );
+});
+
+const { goalStats, validGoal } = require(
+  path.join(temp, 'features/goals/model'),
+);
+const { reminderRequests } = require(
+  path.join(temp, 'features/reminders/model'),
+);
+const { trends, weeklySummary } = require(
+  path.join(temp, 'features/journal/model'),
+);
+function entryOn(day, minutes = 30, outcome = 'completed', kind = 'focus') {
+  const endedAt = new Date(day + 'T12:00:00').getTime();
+  return {
+    id: day,
+    kind,
+    mode: 'custom',
+    startedAt: endedAt - minutes * 60000,
+    endedAt,
+    actualMs: minutes * 60000,
+    plannedMs: minutes * 60000,
+    outcome,
+  };
+}
+test('goals honor historical targets, rest days, unfinished today and completed-only session goals', () => {
+  const goals = [
+    { from: '2026-10-23', type: 'minutes', target: 30, restDays: [0, 6] },
+    { from: '2026-10-26', type: 'sessions', target: 1, restDays: [0, 6] },
+  ];
+  const rows = [
+    entryOn('2026-10-23'),
+    entryOn('2026-10-26'),
+    entryOn('2026-10-27', 30, 'stopped'),
+    entryOn('2026-10-27', 30, 'completed', 'break'),
+  ];
+  let stats = goalStats(rows, goals, new Date('2026-10-27T18:00:00'));
+  assert.equal(stats.streak, 2);
+  assert.equal(stats.achieved, 2);
+  assert.equal(stats.todayValue, 0);
+  stats = goalStats(rows, goals, new Date('2026-10-28T12:00:00'));
+  assert.equal(stats.streak, 0);
+  assert.equal(stats.best, 2);
+  assert.throws(() =>
+    validGoal({ ...goals[0], restDays: [0, 1, 2, 3, 4, 5, 6] }),
+  );
+  assert.throws(() => validGoal({ ...goals[0], target: 0 }));
+  assert.equal(goalStats([], [], new Date('2026-10-28')).streak, 0);
+});
+test('weekly reminders map weekdays correctly and reject invalid schedules', () => {
+  const value = { enabled: true, hour: 9, minute: 30, days: [0, 1, 6] };
+  assert.deepEqual(
+    reminderRequests(value).map((r) => r.weekday),
+    [1, 2, 7],
+  );
+  assert.equal(new Set(reminderRequests(value).map((r) => r.id)).size, 3);
+  assert.deepEqual(reminderRequests({ ...value, enabled: false }), []);
+  for (const invalid of [
+    { hour: 24 },
+    { minute: 60 },
+    { days: [] },
+    { days: [1, 1] },
+    { days: [7] },
+  ])
+    assert.throws(() => reminderRequests({ ...value, ...invalid }));
+});
+test('weekly comparison excludes breaks and uses adjacent non-overlapping local ranges', () => {
+  const rows = [
+    entryOn('2026-10-29', 30),
+    entryOn('2026-10-22', 20),
+    entryOn('2026-10-29', 5, 'completed', 'break'),
+  ];
+  const report = trends(rows, new Date('2026-10-29T18:00:00'));
+  assert.equal(report.current.total, 1800000);
+  assert.equal(report.previous.total, 1200000);
+  assert.equal(report.year.buckets.length, 365);
+  assert.equal(report.peakHour, 12);
+  assert.equal(report.bestDay.day, '2026-10-29');
+  assert.match(
+    weeklySummary(rows, new Date('2026-10-29T18:00:00')),
+    /Previous 7 days: 20 minutes/,
+  );
+  assert.equal(trends([], new Date('2026-10-29')).peakHour, null);
+});
+
+test('backup preferences validate, restore only missing settings and roll back atomically', async () => {
+  const db = new DatabaseSync(':memory:');
+  const api = adapter(db);
+  await migrateDatabase(api);
+  const data = {
+    ...backup(),
+    preferences: {
+      goals: [
+        { from: '2026-10-29', type: 'sessions', target: 3, restDays: [0] },
+      ],
+      routine: { autoAdvance: false, cycles: 4, longBreakMinutes: 15 },
+      ambience: {
+        enabled: [true, false, true],
+        volumes: [0.2, 0.3, 0.4],
+        master: 0.5,
+        muted: false,
+      },
+    },
+  };
+  assert.equal(
+    parseBackup(JSON.stringify(data)).preferences.goals[0].target,
+    3,
+  );
+  assert.throws(() =>
+    parseBackup(
+      JSON.stringify({
+        ...data,
+        preferences: {
+          ...data.preferences,
+          goals: [{ ...data.preferences.goals[0], from: '2026-02-30' }],
+        },
+      }),
+    ),
+  );
+  assert.throws(() =>
+    parseBackup(
+      JSON.stringify({
+        ...data,
+        preferences: { ambience: { ...data.preferences.ambience, master: 2 } },
+      }),
+    ),
+  );
+  const run = api.runAsync;
+  api.runAsync = async (sql, ...args) => {
+    if (sql.includes('focus_sessions')) throw Error('storage full');
+    return run(sql, ...args);
+  };
+  await assert.rejects(mergeBackup(api, data), /storage full/);
+  assert.equal(await readSetting(api, 'goals'), null);
+  api.runAsync = run;
+  await mergeBackup(api, data);
+  assert.deepEqual(await readSetting(api, 'goals'), data.preferences.goals);
+  await writeSetting(api, 'routine', {
+    autoAdvance: true,
+    cycles: 2,
+    longBreakMinutes: 20,
+  });
+  await mergeBackup(api, data);
+  assert.equal((await readSetting(api, 'routine')).cycles, 2);
+  db.close();
 });

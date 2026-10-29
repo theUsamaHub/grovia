@@ -5,6 +5,11 @@ import { loadFocus } from '../focus/repository';
 import { mergeTasks, type Backup } from './schema';
 export async function exportBackup(): Promise<Backup> {
   return {
+    preferences: {
+      goals: await readValue('goals', undefined),
+      routine: await readValue('routine', undefined),
+      ambience: await readValue('ambience', undefined),
+    },
     version: 1,
     exportedAt: new Date().toISOString(),
     planner: await loadPlanner(),
@@ -25,6 +30,9 @@ export async function importBackup(data: Backup) {
     'grovia.planner',
     'grovia.world',
     'grovia.categories',
+    'grovia.goals',
+    'grovia.routine',
+    'grovia.ambience',
   ];
   const categories = await readValue<Backup['categories']>('categories', []);
   const previous = Object.fromEntries(
@@ -32,6 +40,11 @@ export async function importBackup(data: Backup) {
   );
   localStorage.setItem('grovia.importRollback', JSON.stringify(previous));
   try {
+    for (const key of ['goals', 'routine', 'ambience'] as const) {
+      const value = data.preferences?.[key];
+      if (value !== undefined && localStorage.getItem('grovia.' + key) === null)
+        localStorage.setItem('grovia.' + key, JSON.stringify(value));
+    }
     if (data.categories.length)
       localStorage.setItem(
         'grovia.categories',

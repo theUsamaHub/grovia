@@ -9,3 +9,5 @@ Tasks supports create/edit/delete, complete/reopen, optional description/categor
 Native storage uses SQLite migrations through version 4. Planner data is stored as an app setting; session records have optional indexed task identifiers. The web preview uses localStorage. Reduced-motion preferences disable the timer animation and planner fades. Save errors retain the previous persisted data and show retryable feedback.
 
 Validation: automated timer, filtering, input validation, SQLite migration/rollback/idempotency, task history retention, and theme contrast checks. Native device testing remains required for keyboard behavior, font scaling, background restoration and notification delivery. No APK has been compiled on this PC yet because the Android SDK and Java setup are pending.
+
+Daily goals now support minutes or completed sessions in Tasks, with weekly rest days and dated goal policies. Details are in RELEASE_STATUS.md.

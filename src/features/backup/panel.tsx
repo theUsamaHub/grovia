@@ -82,7 +82,9 @@ export function BackupPanel() {
             <AppText>
               New tasks, sessions, plants and achievements will be added.
               Existing entries with the same ID, your garden layout, daily goal
-              and appearance are kept. The active timer is never imported.
+              and appearance are kept. Saved goals, routines and sound mixes are
+              restored only where no preference exists yet. Reminder schedules
+              and active timers are never imported.
             </AppText>
             <AppButton
               label="Merge backup"

@@ -1,3 +1,4 @@
+import { validGoal } from '../goals/model';
 import { validateTask } from '../tasks/model';
 import { z } from 'zod';
 const time = z.number().finite().nonnegative();
@@ -72,6 +73,56 @@ export const backupSchema = z.object({
     )
     .max(1000)
     .default([]),
+  preferences: z
+    .object({
+      goals: z
+        .array(
+          z
+            .object({
+              from: z
+                .string()
+                .regex(/^\d{4}-\d{2}-\d{2}$/)
+                .refine((v) => {
+                  const d = new Date(v + 'T12:00:00');
+                  return (
+                    Number.isFinite(d.getTime()) &&
+                    d.getFullYear() >= 2000 &&
+                    d.getFullYear() <= 2100 &&
+                    d.getDate() === Number(v.slice(-2))
+                  );
+                }),
+              type: z.enum(['minutes', 'sessions']),
+              target: z.number(),
+              restDays: z.array(z.number()).max(6),
+            })
+            .refine((v) => {
+              try {
+                validGoal(v);
+                return true;
+              } catch {
+                return false;
+              }
+            }),
+        )
+        .max(10000)
+        .optional(),
+      routine: z
+        .object({
+          autoAdvance: z.boolean(),
+          cycles: z.number().int().min(1).max(8),
+          longBreakMinutes: z.number().int().min(1).max(60),
+        })
+        .optional(),
+      ambience: z
+        .object({
+          enabled: z.array(z.boolean()).length(3),
+          volumes: z.array(z.number().min(0).max(1)).length(3),
+          master: z.number().min(0).max(1),
+          muted: z.boolean(),
+        })
+        .optional(),
+    })
+    .optional(),
   appearance: z.enum(['light', 'dark', 'system']),
 });
 export type Backup = z.infer<typeof backupSchema>;

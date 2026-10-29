@@ -112,3 +112,5 @@ Static checks and JS exports do not prove native compilation, startup, offline b
 The app now has an original tree icon, a themed appearance screen, System/Light/Dark switching and locally persisted preferences. Mobile uses SQLite with versioned transactional migrations; the browser preview uses localStorage. See [brand and storage details](docs/BRAND_THEME_STORAGE.md). Run `npm run test` for persistence, migration safety and theme-contrast tests. A native rebuild is required for the new launcher icon.
 
 For the exported browser build, run npx expo export --platform web, then npm run preview (http://127.0.0.1:8082).
+
+Additional modules: session-count goals and rest-day streaks, native weekly reminders, yearly activity views and weekly text summaries, and a saved three-layer ambient mixer. See [release status](docs/RELEASE_STATUS.md) for behavior and remaining device checks.

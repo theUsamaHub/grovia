@@ -1,3 +1,4 @@
+import { GoalPanel } from '@/features/goals/panel';
 import { CategoryPicker } from '@/features/categories/panel';
 import { useCallback, useRef, useState } from 'react';
 import {
@@ -42,7 +43,6 @@ export default function TasksScreen() {
   const [draft, setDraft] = useState<Task | null>(null);
   const [estimate, setEstimate] = useState('');
   const [deleting, setDeleting] = useState<Task | null>(null);
-  const [goal, setGoal] = useState('60');
   const [totals, setTotals] = useState<{
     tasks: Record<string, number>;
     daily: number;
@@ -63,7 +63,6 @@ export default function TasksScreen() {
         .then(([data, stats]) => {
           if (alive) {
             setPlanner(data);
-            setGoal(String(data.goalMinutes));
             setTotals(stats);
             setReady(true);
             setError('');
@@ -174,8 +173,6 @@ export default function TasksScreen() {
     </Pressable>
   );
   const tasks = visibleTasks(planner.tasks, view);
-  const minutes = Math.floor(totals.daily / 60000);
-  const progress = Math.min(1, minutes / planner.goalMinutes);
   return (
     <Screen
       title="Your intentions"
@@ -193,67 +190,7 @@ export default function TasksScreen() {
         </Card>
       ) : (
         <>
-          <Card>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
-              <AppText variant="heading">Today’s gentle goal</AppText>
-              <Feather name="sun" size={24} color={palette.primary} />
-            </View>
-            <AppText>
-              {minutes} / {planner.goalMinutes} focus minutes
-            </AppText>
-            <View
-              accessibilityRole="progressbar"
-              accessibilityValue={{
-                min: 0,
-                max: planner.goalMinutes,
-                now: Math.min(minutes, planner.goalMinutes),
-              }}
-              style={{
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: palette.surfaceMuted,
-                overflow: 'hidden',
-              }}
-            >
-              <View
-                style={{
-                  height: 8,
-                  width: progress * 100 + '%',
-                  backgroundColor: palette.primary,
-                }}
-              />
-            </View>
-            <View
-              style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}
-            >
-              <TextInput
-                accessibilityLabel="Daily focus goal in minutes"
-                value={goal}
-                onChangeText={setGoal}
-                keyboardType="number-pad"
-                maxLength={4}
-                style={[fieldStyle, { flex: 1 }]}
-              />
-              <AppButton
-                label="Save goal"
-                disabled={busy}
-                onPress={() => {
-                  const n = Number(goal);
-                  if (!Number.isInteger(n) || n < 1 || n > 1440) {
-                    setError('Choose a goal of 1–1440 whole minutes.');
-                    return;
-                  }
-                  void save({ ...planner, goalMinutes: n });
-                }}
-              />
-            </View>
-          </Card>
+          <GoalPanel />
           <AppButton
             label="Add an intention"
             disabled={busy}

@@ -10,9 +10,17 @@
 - First-run skippable onboarding, shared page fades, timer progress ring, reduced-motion handling.
 - SQLite migration 4 retains old settings/session records and adds category/notes columns.
 
+## Additional completed modules
+
+- Goals can use recorded minutes or completed focus sessions. Weekly rest days preserve streaks without adding unearned goal days. Goal changes apply from today, with previous targets retained. Tracking begins with the first saved goal.
+- Insights includes adjacent seven-day comparisons, a 365-day chart grouped by calendar month, a 91-day activity heatmap, best recorded day and most active session-finishing hour. Weekly summaries export as text. These views use all categories; the existing journal filter applies to the journal and its chart.
+- Native weekly reminders support selected weekdays and a 24-hour time, with contextual permission requests and cancellation. Browser UI explains native-only availability. Reminder identifiers are separate from timer completion notifications. Saving attempts to restore the previous schedule if scheduling or persistence fails; an interrupted save can require opening settings and saving again. Device delivery, time-zone changes, reboot and force-stop still require native QA.
+- Ambience supports three simultaneous foreground layers, per-layer levels, master volume, mute, pause-all and saved mixes. Playback is never automatically restored. Changes to layer selection take effect on the next playback start; deselection pauses that layer immediately.
+- Settings tools use full-width cards outside the branding hero.
+
 ## Backup behavior
 
-Versioned JSON exports completed/stopped session history, tasks, categories, world state and appearance. Active timers are deliberately excluded. Preview precedes import. Import merges new IDs, preserves existing entries with matching IDs, and keeps the current layout, appearance and goal. Earned items are unioned. Native import rolls back as one SQLite transaction. Browser import uses a local rollback journal recovered during startup if interrupted. Files are bounded to 10 MB and validated before writes. Backups are unencrypted files; store them privately.
+Versioned JSON exports completed/stopped session history, tasks, categories, world state and appearance, plus optional goal history, routine and ambience settings. Settings are restored only if absent on the receiving device; existing preferences win. Reminder schedules are device-specific and excluded. Reopen the app after importing preferences. Active timers are deliberately excluded. Preview precedes import. Import merges new IDs, preserves existing entries with matching IDs, and keeps the current layout, appearance and goal. Earned items are unioned. Native import rolls back as one SQLite transaction. Browser import uses a local rollback journal recovered during startup if interrupted. Files are bounded to 10 MB and validated before writes. Backups are unencrypted files; store them privately.
 
 ## Required before release
 
@@ -25,4 +33,4 @@ This is an implementation build, not a store-ready or device-certified release. 
 
 ## Explicit remaining product options
 
-Scheduled reminders, session-goal mode/rest-day streak rules, optional haptic/UI-sound cues, multiple simultaneous ambience tracks, custom backgrounds and more relaxation intervals are not implemented. Automatic routines are opt-in, goals use minutes, and ambience is one foreground track. Monthly/yearly comparative insights, app blocking, richer worlds and cloud/social features remain later roadmap scope from the project context. These are not silently represented as completed features.
+Optional haptic/UI-sound cues, custom timer backgrounds and additional configurable breathing intervals remain personalization work. Richer world art, recurring tasks/subtasks, calendar navigation and previous-year comparisons remain later enhancements. Native app blocking requires platform feasibility and entitlement work; cloud/social features require a separate product decision. Real-device QA and release configuration remain required; successful bundles do not certify device behavior.

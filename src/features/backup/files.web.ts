@@ -1,10 +1,15 @@
-export async function shareBackup(text: string) {
+export async function shareBackup(
+  text: string,
+  kind: 'backup' | 'summary' = 'backup',
+) {
   const url = URL.createObjectURL(
-    new Blob([text], { type: 'application/json' }),
+    new Blob([text], {
+      type: kind === 'backup' ? 'application/json' : 'text/plain',
+    }),
   );
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'grovia-backup.json';
+  a.download = 'grovia-' + kind + (kind === 'backup' ? '.json' : '.txt');
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

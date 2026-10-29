@@ -9,6 +9,9 @@ export async function loadThemePreference() {
       'grovia.planner',
       'grovia.world',
       'grovia.categories',
+      'grovia.goals',
+      'grovia.routine',
+      'grovia.ambience',
     ]) {
       const value = entries[key];
       if (value === null) localStorage.removeItem(key);
