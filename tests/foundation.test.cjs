@@ -64,7 +64,7 @@ test('migration runs once and preferences survive a database reopen', async () =
   await migrateDatabase(api);
   await writeSetting(api, 'appearance', 'dark');
   await migrateDatabase(api);
-  assert.equal(db.prepare('PRAGMA user_version').get().user_version, 3);
+  assert.equal(db.prepare('PRAGMA user_version').get().user_version, 4);
   assert.equal(db.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
   assert.equal(db.prepare('PRAGMA journal_mode').get().journal_mode, 'wal');
   db.close();

@@ -1,3 +1,4 @@
+import { readValue } from '../journal/repository';
 import {
   createContext,
   useCallback,
@@ -11,6 +12,7 @@ import { AppState } from 'react-native';
 import { loadFocus, persistFocus } from './repository';
 import { requestReminderPermission, syncReminder } from './notifications';
 import {
+  completeSession,
   createSession,
   elapsed,
   emptyState,
@@ -34,7 +36,8 @@ type ContextValue = {
     mode: FocusMode,
     minutes: number,
     breakMinutes: number,
-    task?: { id: string; title: string },
+    task?: { id: string; title: string; category?: string },
+    category?: string,
   ) => Promise<void>;
   command: (
     command: 'pause' | 'resume' | 'stop' | 'restart' | 'break' | 'dismiss',
@@ -104,8 +107,14 @@ export function FocusProvider({ children }: PropsWithChildren) {
           next.active &&
           elapsed(next.active, Date.now()) >= next.active.durationMs
         ) {
-          record = finish(next.active, Date.now(), 'completed');
-          next = { ...next, active: null, last: record };
+          const result = completeSession(
+            next,
+            next.active,
+            Date.now(),
+            sessionId(),
+          );
+          record = result.record;
+          next = result.state;
           await persistFocus(next, record);
         }
         if (!active) return;
@@ -150,11 +159,14 @@ export function FocusProvider({ children }: PropsWithChildren) {
         void operate(async () => {
           const live = current.current.active;
           if (!live) return;
-          const record = finish(live, Date.now(), 'completed');
-          await commit(
-            { ...current.current, active: null, last: record },
-            record,
+          const result = completeSession(
+            current.current,
+            live,
+            Date.now(),
+            sessionId(),
+            true,
           );
+          await commit(result.state, result.record);
         });
       else if (time < s.anchorMs)
         void operate(async () => {
@@ -188,7 +200,8 @@ export function FocusProvider({ children }: PropsWithChildren) {
     mode: FocusMode,
     minutes: number,
     breakMinutes: number,
-    task?: { id: string; title: string },
+    task?: { id: string; title: string; category?: string },
+    category?: string,
   ) => {
     if (!ready) return;
     await operate(async () => {
@@ -200,12 +213,25 @@ export function FocusProvider({ children }: PropsWithChildren) {
         Date.now(),
         sessionId(),
       );
+      active.category = category || task?.category || 'Personal';
       if (task) {
         active.taskId = task.id;
         active.taskTitle = task.title;
       }
+      const config = await readValue('routine', {
+        autoAdvance: false,
+        cycles: 4,
+        longBreakMinutes: 15,
+      });
       await commit({
         ...current.current,
+        routine: {
+          autoAdvance: config.autoAdvance && mode !== 'stopwatch',
+          cycles: config.cycles,
+          longBreakMinutes: config.longBreakMinutes,
+          completed: 0,
+          focus: active,
+        },
         active,
         last: null,
         nextBreakMinutes: breakMinutes,
@@ -241,8 +267,8 @@ export function FocusProvider({ children }: PropsWithChildren) {
       }
       if (!s) return;
       if (elapsed(s, time) >= s.durationMs) {
-        const record = finish(s, time, 'completed');
-        await commit({ ...previous, active: null, last: record }, record);
+        const result = completeSession(previous, s, time, sessionId());
+        await commit(result.state, result.record);
         return;
       }
       if (command === 'pause') {
@@ -267,6 +293,7 @@ export function FocusProvider({ children }: PropsWithChildren) {
               )
             : null;
         if (active) {
+          active.category = s.category;
           active.taskId = s.taskId;
           active.taskTitle = s.taskTitle;
         }

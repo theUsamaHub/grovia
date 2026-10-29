@@ -10,6 +10,8 @@ export async function loadFocus(): Promise<{
   const db = await getDatabase();
   const raw = await readSetting(db, 'focus.state');
   const rows = await db.getAllAsync<{
+    category: string | null;
+    notes: string | null;
     id: string;
     task_id: string | null;
     task_title: string | null;
@@ -24,6 +26,8 @@ export async function loadFocus(): Promise<{
   return {
     state: raw === null ? emptyState : validateState(raw),
     history: rows.map((r) => ({
+      category: r.category ?? undefined,
+      notes: r.notes ?? undefined,
       id: r.id,
       taskId: r.task_id ?? undefined,
       taskTitle: r.task_title ?? undefined,

@@ -1,3 +1,6 @@
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { AccessibilityInfo, Animated, Platform } from 'react-native';
 import { ScrollView, View, StyleSheet, type ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from './primitives';
@@ -8,13 +11,47 @@ export function Screen({
   children,
 }: ViewProps & { title: string; subtitle?: string }) {
   const { palette } = useAppTheme();
+  const [opacity] = useState(() => new Animated.Value(1));
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      let animation: Animated.CompositeAnimation | undefined;
+      void AccessibilityInfo.isReduceMotionEnabled()
+        .then((reduce) => {
+          if (!alive || reduce) return;
+          opacity.setValue(0.75);
+          animation = Animated.timing(opacity, {
+            toValue: 1,
+            duration: 220,
+            useNativeDriver: Platform.OS !== 'web',
+          });
+          animation.start();
+        })
+        .catch(() => {});
+      const sub = AccessibilityInfo.addEventListener(
+        'reduceMotionChanged',
+        (reduce) => {
+          if (reduce) {
+            animation?.stop();
+            opacity.setValue(1);
+          }
+        },
+      );
+      return () => {
+        alive = false;
+        animation?.stop();
+        opacity.setValue(1);
+        sub.remove();
+      };
+    }, [opacity]),
+  );
   return (
     <SafeAreaView
       edges={['top', 'left', 'right']}
       style={{ flex: 1, backgroundColor: palette.background }}
     >
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.content}>
+        <Animated.View style={[styles.content, { opacity }]}>
           <View style={{ gap: 4 }}>
             <AppText
               accessibilityRole="header"
@@ -26,7 +63,7 @@ export function Screen({
             {subtitle && <AppText muted>{subtitle}</AppText>}
           </View>
           {children}
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

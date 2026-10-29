@@ -2,7 +2,9 @@
 
 Focus. Grow. Thrive.
 
-Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Includes a themed app shell, persistent Focus timers, and a Tasks planner. See [Focus and Tasks](docs/FOCUS_TASKS.md) for implemented behavior and remaining device validation.
+Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Includes a themed app shell, persistent Focus timers, Tasks, Insights, a garden world, breathing, ambience, categories and local backup controls. See [Focus and Tasks](docs/FOCUS_TASKS.md) for implemented behavior and remaining device validation.
+
+See [release status](docs/RELEASE_STATUS.md) for implemented behavior, remaining product options and required device QA.
 
 ## Quick start
 

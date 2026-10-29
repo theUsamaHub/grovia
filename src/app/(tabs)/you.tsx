@@ -1,3 +1,8 @@
+import { RoutinePanel } from '@/features/focus/routine-panel';
+import { CategoryPanel } from '@/features/categories/panel';
+import { BackupPanel } from '@/features/backup/panel';
+import { Breathing } from '@/features/wellbeing/breathing';
+import { Ambience } from '@/features/wellbeing/ambience';
 import {
   Image,
   Platform,
@@ -125,6 +130,11 @@ export default function YouScreen() {
             <AppText variant="title" style={{ textAlign: 'center' }}>
               Your space, your pace.
             </AppText>
+            <RoutinePanel />
+            <CategoryPanel />
+            <BackupPanel />
+            <Breathing />
+            <Ambience />
             <AppText muted style={{ textAlign: 'center', maxWidth: 340 }}>
               A calmer space for your attention. Make it feel like yours.
             </AppText>

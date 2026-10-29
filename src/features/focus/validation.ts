@@ -5,6 +5,8 @@ const kind = z.enum(['focus', 'break']);
 const time = z.number().finite().nonnegative();
 const record = z.object({
   id: z.string().min(1),
+  category: z.string().max(60).optional(),
+  notes: z.string().max(2000).optional(),
   taskId: z.string().optional(),
   taskTitle: z.string().optional(),
   kind,
@@ -15,21 +17,31 @@ const record = z.object({
   plannedMs: z.number().positive(),
   outcome: z.enum(['completed', 'stopped']),
 });
+const sessionSchema = z.object({
+  id: z.string().min(1),
+  category: z.string().max(60).optional(),
+  notes: z.string().max(2000).optional(),
+  taskId: z.string().optional(),
+  taskTitle: z.string().optional(),
+  kind,
+  mode,
+  startedAt: time,
+  durationMs: z.number().positive().max(86400000),
+  elapsedMs: time,
+  anchorMs: time.nullable(),
+  breakMinutes: z.number().int().min(1).max(60),
+});
 const schema = z.object({
-  active: z
+  routine: z
     .object({
-      id: z.string().min(1),
-      taskId: z.string().optional(),
-      taskTitle: z.string().optional(),
-      kind,
-      mode,
-      startedAt: time,
-      durationMs: z.number().positive().max(86400000),
-      elapsedMs: time,
-      anchorMs: time.nullable(),
-      breakMinutes: z.number().int().min(1).max(60),
+      autoAdvance: z.boolean(),
+      cycles: z.number().int().min(1).max(8),
+      longBreakMinutes: z.number().int().min(1).max(60),
+      completed: z.number().int().nonnegative(),
+      focus: sessionSchema,
     })
-    .nullable(),
+    .optional(),
+  active: sessionSchema.nullable(),
   last: record.nullable(),
   reminders: z.boolean(),
   nextBreakMinutes: z.number().int().min(1).max(60).default(5),

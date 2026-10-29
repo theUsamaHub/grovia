@@ -33,6 +33,10 @@ export const migrations = [
     version: 3,
     sql: 'ALTER TABLE focus_sessions ADD COLUMN task_id TEXT; ALTER TABLE focus_sessions ADD COLUMN task_title TEXT; CREATE INDEX focus_sessions_task ON focus_sessions(task_id);',
   },
+  {
+    version: 4,
+    sql: 'ALTER TABLE focus_sessions ADD COLUMN category TEXT; ALTER TABLE focus_sessions ADD COLUMN notes TEXT;',
+  },
 ];
 export async function migrateDatabase(db: MigrationDatabase) {
   await db.execAsync(

@@ -1,3 +1,5 @@
+import { CategoryPicker } from '@/features/categories/panel';
+import Svg, { Circle } from 'react-native-svg';
 import { useCallback, useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -33,6 +35,7 @@ export default function FocusScreen() {
   const { palette, mode } = useAppTheme();
   const focus = useFocus();
   const { state, now, busy, ready } = focus;
+  const [category, setCategory] = useState('Personal');
   const [selected, setSelected] = useState<FocusMode>('pomodoro');
   const [minutes, setMinutes] = useState('25');
   const [rest, setRest] = useState('5');
@@ -168,6 +171,11 @@ export default function FocusScreen() {
               )}
             </Card>
           )}
+          <CategoryPicker
+            value={session?.category ?? category}
+            onChange={setCategory}
+            disabled={!!session || busy}
+          />
           <ImageBackground
             source={require('../../../assets/images/forest-glade.jpg')}
             imageStyle={{ opacity: mode === 'dark' ? 0.3 : 0.65 }}
@@ -194,6 +202,33 @@ export default function FocusScreen() {
                 },
               ]}
             >
+              {!stopwatch && (
+                <Svg
+                  pointerEvents="none"
+                  style={{ position: 'absolute', top: 0, left: 0 }}
+                  width="100%"
+                  height="100%"
+                  viewBox="0 0 244 244"
+                >
+                  <Circle
+                    cx="122"
+                    cy="122"
+                    r="118"
+                    fill="none"
+                    stroke={palette.primary}
+                    strokeWidth="4"
+                    strokeDasharray={2 * Math.PI * 118}
+                    strokeDashoffset={
+                      2 *
+                      Math.PI *
+                      118 *
+                      (session ? spent / session.durationMs : 0)
+                    }
+                    rotation="-90"
+                    origin="122,122"
+                  />
+                </Svg>
+              )}
               <Animated.Image
                 source={require('../../../assets/images/grovia-adaptive.png')}
                 style={{ width: 112, height: 96, transform: [{ scale }] }}
@@ -243,7 +278,13 @@ export default function FocusScreen() {
                   label={stopwatch ? 'Start stopwatch' : 'Start focus'}
                   disabled={busy || !valid}
                   onPress={() =>
-                    void focus.start(selected, duration, breakMinutes)
+                    void focus.start(
+                      selected,
+                      duration,
+                      breakMinutes,
+                      undefined,
+                      category,
+                    )
                   }
                 />
               ) : (

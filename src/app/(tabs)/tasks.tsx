@@ -1,3 +1,4 @@
+import { CategoryPicker } from '@/features/categories/panel';
 import { useCallback, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -397,6 +398,7 @@ export default function TasksScreen() {
                             .start('pomodoro', 25, 5, {
                               id: task.id,
                               title: task.title,
+                              category: task.category,
                             })
                             .then(() => router.navigate('/'));
                         },
@@ -483,6 +485,11 @@ export default function TasksScreen() {
                       />
                     </View>
                   ))}
+                  <CategoryPicker
+                    value={draft.category}
+                    onChange={(category) => setDraft({ ...draft, category })}
+                    disabled={busy}
+                  />
                   <AppText variant="label">Priority</AppText>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     {(['low', 'normal', 'high'] as const).map((priority) =>

@@ -1,3 +1,4 @@
+import { Welcome } from '@/components/startup/welcome';
 import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider, DefaultTheme, DarkTheme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -111,6 +112,7 @@ function ThemedApp() {
               />
             </View>
             {!introDone && <BrandSplash onComplete={finishIntro} />}
+            {introDone && <Welcome />}
           </View>
         </FocusProvider>
       )}

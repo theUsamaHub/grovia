@@ -9,7 +9,7 @@ export async function savePlanner(planner: Planner) {
 }
 export async function focusTotals(dayStart: number, dayEnd: number) {
   const { history } = await loadFocus();
-  const tasks: Record<string, number> = {};
+  const tasks: Record<string, number> = Object.create(null);
   let daily = 0;
   for (const row of history) {
     if (row.kind !== 'focus') continue;
