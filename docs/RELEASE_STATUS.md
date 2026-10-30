@@ -26,7 +26,7 @@ Versioned JSON exports completed/stopped session history, tasks, categories, wor
 
 This is an implementation build, not a store-ready or device-certified release. Browser automation timed out in this environment; visual and interaction QA has not been completed for these new pages.
 
-1. Install/configure Android SDK and Java; create a native development build. Choose permanent Android/iOS identifiers before store distribution and link the project to the user's Expo account if using EAS.
+1. Install/configure Android SDK and Java; create a native development build. Android uses com.theusamahub.grovia. Confirm the store identity and choose an iOS identifier before store distribution; link the project to the user's Expo account for EAS. The preview profile builds a standalone APK with npm run android:apk.
 2. On real Android/iOS devices check cold start, first-run onboarding, both themes, large text and screen reader, keyboard/form scrolling, task CRUD and linked timer history, timer pause/background/relaunch/reboot/force-stop, notifications and denied permissions, garden placement, history corrections, and file picker/share/backup round trip.
 3. Test audio in silent mode, during interruptions, app background/foreground, track changes, and Bluetooth/headphones. Test breathing pause/resume and reduced-motion settings.
 4. Check installed size and performance on representative devices. No APK/IPA size or runtime performance claim has been measured yet.
