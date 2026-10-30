@@ -2,7 +2,9 @@
 
 Focus. Grow. Thrive.
 
-Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Phase 1 provides a runnable branded shell, development tooling and dependencies. Product screens and domain features are not implemented yet.
+Offline-first Android and iOS productivity app built with Expo SDK 58, React Native and strict TypeScript. Includes a themed app shell, persistent Focus timers, Tasks, Insights, a garden world, breathing, ambience, categories and local backup controls. See [Focus and Tasks](docs/FOCUS_TASKS.md) for implemented behavior and remaining device validation.
+
+See [release status](docs/RELEASE_STATUS.md) for implemented behavior, remaining product options and required device QA.
 
 ## Quick start
 
@@ -15,6 +17,8 @@ npm run web
 ```
 
 Web is a convenient shell preview. SQLite, notifications, audio and background behavior require native device testing.
+
+See [Android setup and troubleshooting](docs/ANDROID_SETUP.md) for the difference between Expo Go, a development build, and the local Android SDK. Run `npm run android:doctor` to check this PC before attempting a local build.
 
 For mobile, install a development build on your device, then run:
 
@@ -35,7 +39,7 @@ npx eas-cli@latest build --profile development --platform android
 npx eas-cli@latest build --profile development --platform ios
 ```
 
-Physical iOS builds need Apple signing credentials. Build profiles are prepared; no cloud build or store submission has been started. App icons and splash artwork are intentionally pending approved production assets.
+Physical iOS builds need Apple signing credentials. Build profiles are prepared; no cloud build or store submission has been started. Tree icons and splash artwork are configured.
 
 ## Commands
 
@@ -108,3 +112,5 @@ Static checks and JS exports do not prove native compilation, startup, offline b
 The app now has an original tree icon, a themed appearance screen, System/Light/Dark switching and locally persisted preferences. Mobile uses SQLite with versioned transactional migrations; the browser preview uses localStorage. See [brand and storage details](docs/BRAND_THEME_STORAGE.md). Run `npm run test` for persistence, migration safety and theme-contrast tests. A native rebuild is required for the new launcher icon.
 
 For the exported browser build, run npx expo export --platform web, then npm run preview (http://127.0.0.1:8082).
+
+Additional modules: session-count goals and rest-day streaks, native weekly reminders, yearly activity views and weekly text summaries, and a saved three-layer ambient mixer. See [release status](docs/RELEASE_STATUS.md) for behavior and remaining device checks.

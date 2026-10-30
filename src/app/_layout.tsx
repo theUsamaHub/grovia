@@ -1,8 +1,11 @@
+import { Welcome } from '@/components/startup/welcome';
 import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider, DefaultTheme, DarkTheme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { BrandSplash } from '@/components/startup/brand-splash';
+import { FocusProvider } from '@/features/focus/provider';
 import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -44,8 +47,10 @@ export default function RootLayout() {
 }
 function ThemedApp() {
   const { mode, palette, ready, error, retry } = useAppTheme();
+  const [introDone, setIntroDone] = useState(false);
+  const finishIntro = useCallback(() => setIntroDone(true), []);
   useEffect(() => {
-    if (ready || error) void SplashScreen.hideAsync().catch(console.warn);
+    if (error) void SplashScreen.hideAsync().catch(console.warn);
   }, [ready, error]);
   const base = mode === 'dark' ? DarkTheme : DefaultTheme;
   return (
@@ -88,12 +93,28 @@ function ThemedApp() {
           )}
         </View>
       ) : (
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: palette.background },
-          }}
-        />
+        <FocusProvider>
+          <View style={{ flex: 1 }}>
+            <View
+              style={{ flex: 1 }}
+              pointerEvents={introDone ? 'auto' : 'none'}
+              accessibilityElementsHidden={!introDone}
+              importantForAccessibility={
+                introDone ? 'auto' : 'no-hide-descendants'
+              }
+              aria-hidden={!introDone}
+            >
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: palette.background },
+                }}
+              />
+            </View>
+            {!introDone && <BrandSplash onComplete={finishIntro} />}
+            {introDone && <Welcome />}
+          </View>
+        </FocusProvider>
       )}
     </ThemeProvider>
   );
