@@ -63,7 +63,8 @@
     "test": "node --test tests/*.test.cjs",
     "preview": "node scripts/preview.cjs",
     "start:go": "expo start --go",
-    "android:doctor": "node scripts/android-doctor.cjs"
+    "android:doctor": "node scripts/android-doctor.cjs",
+    "android:apk": "npx eas-cli@latest build --platform android --profile preview"
   },
   "private": true,
   "engines": {

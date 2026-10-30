@@ -13,7 +13,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/grovia-adaptive.png",
         "backgroundColor": "#2F6B4F"
-      }
+      },
+      "package": "com.theusamahub.grovia",
+      "versionCode": 1
     },
     "web": {
       "output": "static",

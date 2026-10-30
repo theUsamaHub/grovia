@@ -18,7 +18,22 @@ Use Android Studio Device Manager to create/start an emulator, or connect a phys
 
 ## Cloud alternative
 
-EAS can create an Android development APK without a local SDK/JDK. The existing development build profile is ready, but this repository still needs an Expo account/project link and a permanent Android application identifier before its first cloud build. Install the resulting APK on the phone, then run `npm start` and scan the QR code from that app.
+The Android application ID is configured as `com.theusamahub.grovia`. The preview profile explicitly produces an installable APK with the JavaScript bundled, so it runs without Metro or your computer.
+
+From the project directory:
+
+```powershell
+npx eas-cli@latest login
+npm run android:apk
+```
+
+On the first build, follow the prompts to create/link the project under your Expo account and generate an Android signing keystore. When the build finishes, open the download link on your phone, download the APK and allow installation from that browser when Android asks. This is a test build, not a Play Store upload. EAS builds in the cloud without a local Android SDK or JDK.
+
+For development with Metro instead, run `npx eas-cli@latest build --platform android --profile development`, install that APK, then run `npm start`. The development APK is different from the standalone preview APK.
+
+`npm run android` opens an already installed development client; it does not create an APK. Restart Metro after changing app configuration.
+
+Source: [Expo APK builds](https://docs.expo.dev/build-reference/apk/).
 
 ## Diagnose a phone error
 
